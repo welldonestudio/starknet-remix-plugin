@@ -1,12 +1,7 @@
 /* eslint-disable multiline-ternary */
 import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
-import {
-  artifactFilename,
-  artifactFolder,
-  getFileExtension,
-  getFileNameFromPath
-} from '../../utils/utils'
+import { artifactFilename, artifactFolder, getFileExtension, getFileNameFromPath } from '../../utils/utils'
 import './styles.css'
 import { hash } from 'starknet'
 import Container from '../../components/ui_components/Container'
@@ -21,13 +16,11 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 // Imported Atoms
 import { cairoVersionAtom } from '../../atoms/cairoVersion'
-import {
-  compiledContractsAtom,
-  selectedCompiledContract
-} from '../../atoms/compiledContracts'
+import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 import {
   activeTomlPathAtom,
   compilationAtom,
+  compileTimestampAtom,
   currentFilenameAtom,
   hashDirAtom,
   isCompilingAtom,
@@ -57,17 +50,10 @@ const CompilationCard: React.FC<{
   onClick: () => unknown
   compileScarb: (workspacePath: string, scarbPath: string) => Promise<void>
   currentWorkspacePath: string
-}> = ({
-  validation,
-  isLoading,
-  onClick,
-  compileScarb,
-  currentWorkspacePath
-}): React.ReactElement => {
+}> = ({ validation, isLoading, onClick, compileScarb, currentWorkspacePath }): React.ReactElement => {
   const { remixClient } = useRemixClient()
 
-  const { activeTomlPath, tomlPaths, isCompiling, currentFilename } =
-    useAtomValue(compilationAtom)
+  const { activeTomlPath, tomlPaths, isCompiling, currentFilename } = useAtomValue(compilationAtom)
 
   const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
 
@@ -110,13 +96,10 @@ const CompilationCard: React.FC<{
             <D.Trigger>
               <div className="btn btn-primary rounded-button w-100 trigger-wrapper px-0">
                 <span className={'flex flex-row m-1'}>
-                  <label
-                  className="text-break text-white"
-                  style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
-                >
-                  {activeTomlPath !== '' ? activeTomlPath : currentWorkspacePath}
-                </label>
-                <BsChevronDown className={'ml-1'} />
+                  <label className="text-break text-white" style={{ fontFamily: 'inherit', fontSize: 'inherit' }}>
+                    {activeTomlPath !== '' ? activeTomlPath : currentWorkspacePath}
+                  </label>
+                  <BsChevronDown className={'ml-1'} />
                 </span>
               </div>
             </D.Trigger>
@@ -143,9 +126,7 @@ const CompilationCard: React.FC<{
       <button
         className="compile-button btn btn-information btn-block d-block w-100 text-break rounded-button remixui_disabled mb-1 mt-1 px-0"
         style={{
-          cursor: `${
-            !validation || isCurrentFileName ? 'not-allowed' : 'pointer'
-          }`
+          cursor: `${!validation || isCurrentFileName ? 'not-allowed' : 'pointer'}`
         }}
         disabled={!validation || isCurrentFileName || isCompiling}
         aria-disabled={!validation || isCurrentFileName || isCompiling}
@@ -160,16 +141,12 @@ const CompilationCard: React.FC<{
                 <div className="d-flex align-items-center justify-content-center">
                   {isLoading ? (
                     <>
-                      <span style={{ paddingLeft: '0.5rem' }}>
-                        {useAtomValue(statusAtom)}
-                      </span>
+                      <span style={{ paddingLeft: '0.5rem' }}>{useAtomValue(statusAtom)}</span>
                     </>
                   ) : (
                     <div className="text-truncate overflow-hidden text-nowrap">
                       <span>Compile</span>
-                      <span className="ml-1 text-nowrap">
-                        {currentFilename}
-                      </span>
+                      <span className="ml-1 text-nowrap">{currentFilename}</span>
                     </div>
                   )}
                 </div>
@@ -191,19 +168,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const cairoVersion = useAtomValue(cairoVersionAtom)
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(
-    selectedCompiledContract
-  )
+  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
 
-  const {
-    currentFilename,
-    isCompiling,
-    isValidCairo,
-    noFileSelected,
-    hashDir,
-    tomlPaths,
-    activeTomlPath
-  } = useAtomValue(compilationAtom)
+  const { currentFilename, isCompiling, isValidCairo, noFileSelected, hashDir, tomlPaths, activeTomlPath } =
+    useAtomValue(compilationAtom)
 
   const setStatus = useSetAtom(statusAtom)
   const setHashDir = useSetAtom(hashDirAtom)
@@ -213,6 +181,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const setCurrentFilename = useSetAtom(currentFilenameAtom)
   const setTomlPaths = useSetAtom(tomlPathsAtom)
   const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
+  const setCompileTimestamp = useSetAtom(compileTimestampAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
 
@@ -223,9 +192,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setHashDir(hashDir)
     } else {
       // create a random hash of length 32
-      const hashDir = ethers.utils
-        .hashMessage(ethers.utils.randomBytes(32))
-        .replace('0x', '')
+      const hashDir = ethers.utils.hashMessage(ethers.utils.randomBytes(32)).replace('0x', '')
       setHashDir(hashDir)
       storage.set('hashDir', hashDir)
     }
@@ -246,10 +213,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         }
 
         // get current file
-        const currentFile = await remixClient.call(
-          'fileManager',
-          'getCurrentFile'
-        )
+        const currentFile = await remixClient.call('fileManager', 'getCurrentFile')
         if (currentFile.length > 0) {
           const filename = getFileNameFromPath(currentFile)
           const currentFileExtension = getFileExtension(filename)
@@ -276,22 +240,18 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
-      remixClient.on(
-        'fileManager',
-        'currentFileChanged',
-        (currentFileChanged: any) => {
-          const filename = getFileNameFromPath(currentFileChanged)
-          const currentFileExtension = getFileExtension(filename)
-          setIsValidCairo(currentFileExtension === 'cairo')
-          setCurrentFilename(filename)
-          remixClient.emit('statusChanged', {
-            key: 'succeed',
-            type: 'info',
-            title: 'Current file: ' + currentFilename
-          })
-          setNoFileSelected(false)
-        }
-      )
+      remixClient.on('fileManager', 'currentFileChanged', (currentFileChanged: any) => {
+        const filename = getFileNameFromPath(currentFileChanged)
+        const currentFileExtension = getFileExtension(filename)
+        setIsValidCairo(currentFileExtension === 'cairo')
+        setCurrentFilename(filename)
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'info',
+          title: 'Current file: ' + currentFilename
+        })
+        setNoFileSelected(false)
+      })
     }, 500)
   }, [remixClient, currentFilename])
 
@@ -302,18 +262,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         if (noFileSelected) {
           throw new Error('No file selected')
         }
-        const currentFilePath = await remixClient.call(
-          'fileManager',
-          'getCurrentFile'
-        )
+        const currentFilePath = await remixClient.call('fileManager', 'getCurrentFile')
         if (!currentFilePath.endsWith('.cairo')) {
           throw new Error('Not a valid cairo file')
         }
-        const currentFileContent = await remixClient.call(
-          'fileManager',
-          'readFile',
-          currentFilePath
-        )
+        const currentFileContent = await remixClient.call('fileManager', 'readFile', currentFilePath)
         await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
           method: 'POST',
           body: currentFileContent,
@@ -333,15 +286,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }, 100)
   }, [currentFilename, remixClient])
 
-  async function getTomlPaths (
-    workspacePath: string,
-    currPath: string
-  ): Promise<string[]> {
+  async function getTomlPaths(workspacePath: string, currPath: string): Promise<string[]> {
     const resTomlPaths: string[] = []
     try {
-      const allFiles = await remixClient.fileManager.readdir(
-        workspacePath + '/' + currPath
-      )
+      const allFiles = await remixClient.fileManager.readdir(workspacePath + '/' + currPath)
       // get keys of allFiles object
       const allFilesKeys: string[] = Object.keys(allFiles)
       // const get all values of allFiles object
@@ -353,10 +301,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         }
 
         if (Object.values(allFilesValues[i])[0] as unknown as boolean) {
-          const recTomlPaths = await getTomlPaths(
-            workspacePath,
-            allFilesKeys[i]
-          )
+          const recTomlPaths = await getTomlPaths(workspacePath, allFilesKeys[i])
           resTomlPaths.push(...recTomlPaths)
         }
       }
@@ -506,48 +451,37 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   ]
 
-  async function compile (): Promise<void> {
+  async function compile(): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
       setStatus('Getting cairo file path...')
-      const currentFilePath = await remixClient.call(
-        'fileManager',
-        'getCurrentFile'
-      )
+      const currentFilePath = await remixClient.call('fileManager', 'getCurrentFile')
 
       setStatus('Getting cairo file content...')
-      const currentFileContent = await remixClient.call(
-        'fileManager',
-        'readFile',
-        currentFilePath
-      )
+      const currentFileContent = await remixClient.call('fileManager', 'readFile', currentFilePath)
 
       setStatus('Parsing cairo code...')
-      const saveCodeResponse = await fetch(
-        `${apiUrl}/save_code/${hashDir}/${currentFilePath}`,
-        {
-          method: 'POST',
-          body: currentFileContent,
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/octet-stream'
-          }
+      const saveCodeResponse = await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
+        method: 'POST',
+        body: currentFileContent,
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'application/octet-stream'
         }
-      )
+      })
 
       if (!saveCodeResponse.ok) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Could not reach cairo compilation server'
-        )
+        await remixClient.call('notification' as any, 'toast', 'Could not reach cairo compilation server')
         throw new Error('Cairo Compilation Request Failed')
       }
 
       setStatus('Compiling to sierra...')
+
+      const timestamp = Date.now().toString()
+      setCompileTimestamp(timestamp)
 
       const compileToSierraResponse = await asyncFetch(
         `compile-to-sierra-async/${cairoVersion}/${hashDir}/${currentFilePath}`,
@@ -587,11 +521,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         errorLetsArray.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(':')[0].trim()
-          const errorTitle: string = errorLet[0]
-            .split(':')
-            .slice(1)
-            .join(':')
-            .trim()
+          const errorTitle: string = errorLet[0].split(':').slice(1).join(':').trim()
           const errorLine = errorLet[1].split(':')[1].trim()
           const errorColumn = errorLet[1].split(':')[2].trim()
           // join the rest of the array
@@ -613,17 +543,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           type: 'error',
           title: lastLine?.startsWith('Error') ? lastLine : 'Compilation Failed'
         })
-        throw new Error(
-          'Cairo Compilation Failed, logs can be read in the terminal log'
-        )
+        throw new Error('Cairo Compilation Failed, logs can be read in the terminal log')
       }
       setStatus('Compiling to casm...')
 
       const compileToCasmResponse = await asyncFetch(
-        `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(
-          getFileExtension(currentFilePath),
-          'sierra'
-        )}`,
+        `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
         'compile-to-casm-result'
       )
 
@@ -639,17 +564,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           type: 'error',
           title: lastLine ?? 'Sierra Compilation Failed'
         })
-        throw new Error(
-          'Sierra Cairo Compilation Failed, logs can be read in the terminal log'
-        )
+        throw new Error('Sierra Cairo Compilation Failed, logs can be read in the terminal log')
       }
 
-      const contract = await genContractData(
-        currentFilename,
-        currentFilePath,
-        sierra.file_content,
-        casm.file_content
-      )
+      const contract = await genContractData(currentFilename, currentFilePath, sierra.file_content, casm.file_content)
 
       if (contract != null) {
         setSelectedContract(contract)
@@ -663,46 +581,24 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       setStatus('Saving artifacts...')
 
-      const sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-        '.json',
-        currentFilename
-      )}`
-      const casmPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-        '.casm',
-        currentFilename
-      )}`
+      const sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename('.json', currentFilename)}`
+      const casmPath = `${artifactFolder(currentFilePath)}/${artifactFilename('.casm', currentFilename)}`
 
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
-        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(
-          sierra.file_content
-        )}`
+        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(sierra.file_content)}`
       })
 
       try {
-        await remixClient.call(
-          'fileManager',
-          'writeFile',
-          sierraPath,
-          sierra.file_content
-        )
-        await remixClient.call(
-          'fileManager',
-          'writeFile',
-          casmPath,
-          casm.file_content
-        )
+        await remixClient.call('fileManager', 'writeFile', sierraPath, sierra.file_content)
+        await remixClient.call('fileManager', 'writeFile', casmPath, casm.file_content)
       } catch (e) {
         if (e instanceof Error) {
           await remixClient.call(
             'notification' as any,
             'toast',
-            e.message +
-              ' try deleting the files: ' +
-              sierraPath +
-              ' and ' +
-              casmPath
+            e.message + ' try deleting the files: ' + sierraPath + ' and ' + casmPath
           )
         }
         remixClient.emit('statusChanged', {
@@ -716,11 +612,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       // await remixClient.fileManager.open(sierraPath)
 
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `Cairo compilation output written to: ${sierraPath} `
-      )
+      await remixClient.call('notification' as any, 'toast', `Cairo compilation output written to: ${sierraPath} `)
       setStatus('done')
       setAccordian('deploy')
     } catch (e) {
@@ -737,36 +629,22 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function saveScarbWorkspace (
-    workspacePath: string,
-    currPath: string
-  ): Promise<string[]> {
+  async function saveScarbWorkspace(workspacePath: string, currPath: string): Promise<string[]> {
     const resTomlPaths: string[] = []
 
     try {
-      const allFiles = await remixClient.fileManager.readdir(
-        workspacePath + '/' + currPath
-      )
+      const allFiles = await remixClient.fileManager.readdir(workspacePath + '/' + currPath)
       // get keys of allFiles object
       const allFilesKeys = Object.keys(allFiles)
       // const get all values of allFiles object
       const allFilesValues = Object.values(allFiles)
 
       for (let i = 0; i < allFilesKeys.length; i++) {
-        if (
-          allFilesKeys[i].endsWith('Scarb.toml') ||
-          allFilesKeys[i].endsWith('.cairo')
-        ) {
-          const fileContent = await remixClient.call(
-            'fileManager',
-            'readFile',
-            workspacePath + '/' + allFilesKeys[i]
-          )
+        if (allFilesKeys[i].endsWith('Scarb.toml') || allFilesKeys[i].endsWith('.cairo')) {
+          const fileContent = await remixClient.call('fileManager', 'readFile', workspacePath + '/' + allFilesKeys[i])
           setStatus(`Saving ${allFilesKeys[i]}...`)
           const response = await fetch(
-            `${apiUrl}/save_code/${hashDir}/${
-              workspacePath.replace('.', '') + '/' + allFilesKeys[i]
-            }`,
+            `${apiUrl}/save_code/${hashDir}/${workspacePath.replace('.', '') + '/' + allFilesKeys[i]}`,
             {
               method: 'POST',
               body: fileContent,
@@ -777,11 +655,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             }
           )
           if (!response.ok) {
-            await remixClient.call(
-              'notification' as any,
-              'toast',
-              'Could not reach cairo compilation server'
-            )
+            await remixClient.call('notification' as any, 'toast', 'Could not reach cairo compilation server')
             throw new Error('Request to save code failed')
           }
         }
@@ -797,10 +671,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return resTomlPaths
   }
 
-  async function compileScarb (
-    workspacePath: string,
-    scarbPath: string
-  ): Promise<void> {
+  async function compileScarb(workspacePath: string, scarbPath: string): Promise<void> {
     setIsCompiling(true)
     try {
       setStatus('Saving scarb workspace...')
@@ -809,18 +680,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       let result: string
       try {
         result = await asyncFetch(
-          `compile-scarb-async/${hashDir}/${workspacePath.replace(
-            '.',
-            ''
-          )}/${scarbPath}`,
+          `compile-scarb-async/${hashDir}/${workspacePath.replace('.', '')}/${scarbPath}`,
           'compile-scarb-result'
         )
       } catch (e) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Could not reach cairo compilation server'
-        )
+        await remixClient.call('notification' as any, 'toast', 'Could not reach cairo compilation server')
         throw new Error('Cairo Compilation Request Failed')
       }
       const scarbCompile: ScarbCompileResponse = JSON.parse(result)
@@ -828,8 +692,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         await remixClient.call('notification' as any, 'alert', {
           id: 'starknetRemixPluginAlert',
           title: 'Scarb compilation failed!',
-          message:
-            'Scarb compilation failed!, you can read logs in the terminal console'
+          message: 'Scarb compilation failed!, you can read logs in the terminal console'
         })
         remixClient.emit('statusChanged', {
           key: 'failed',
@@ -857,16 +720,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       for (const file of scarbCompile.file_content_map_array) {
         if (file.file_name?.endsWith('.contract_class.json')) {
-          const contractName: string = file.file_name.replace(
-            '.contract_class.json',
-            ''
-          )
+          const contractName: string = file.file_name.replace('.contract_class.json', '')
           const sierra = JSON.parse(file.file_content)
           if (
             scarbCompile.file_content_map_array?.find(
-              (file: { file_name: string }) =>
-                file.file_name ===
-                contractName + '.compiled_contract_class.json'
+              (file: { file_name: string }) => file.file_name === contractName + '.compiled_contract_class.json'
             ) == null
           ) {
             notifyCasmInclusion = true
@@ -874,9 +732,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           }
           const casm = JSON.parse(
             scarbCompile.file_content_map_array.find(
-              (file: { file_name: string }) =>
-                file.file_name ===
-                contractName + '.compiled_contract_class.json'
+              (file: { file_name: string }) => file.file_name === contractName + '.compiled_contract_class.json'
             )?.file_content ?? ''
           )
           const genContract = await genContractData(
@@ -908,12 +764,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         for (const file of scarbCompile.file_content_map_array) {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           const filePath = `${scarbPath}/target/dev/${file.file_name}`
-          await remixClient.call(
-            'fileManager',
-            'writeFile',
-            filePath,
-            JSON.stringify(JSON.parse(file.file_content))
-          )
+          await remixClient.call('fileManager', 'writeFile', filePath, JSON.stringify(JSON.parse(file.file_content)))
         }
         await remixClient.call(
           'notification' as any,
@@ -943,7 +794,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function genContractData (
+  async function genContractData(
     contractName: string,
     path: string,
     sierraFile: string,
@@ -956,9 +807,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     const sierraClassHash = hash.computeSierraContractClassHash(sierra)
     if (
       contracts.find(
-        (contract) =>
-          contract.classHash === classHash &&
-          contract.compiledClassHash === compiledClassHash
+        (contract) => contract.classHash === classHash && contract.compiledClassHash === compiledClassHash
       ) != null
     ) {
       return null

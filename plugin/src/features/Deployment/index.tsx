@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/indent */
+/* eslint-disable multiline-ternary */
 import React, { useEffect, useState } from 'react'
 import { type BigNumberish } from 'ethers'
 import { constants } from 'starknet'
@@ -11,10 +13,7 @@ import { type AccordianTabs } from '../Plugin'
 import transactionsAtom from '../../atoms/transactions'
 
 import './styles.css'
-import {
-  compiledContractsAtom,
-  selectedCompiledContract
-} from '../../atoms/compiledContracts'
+import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
@@ -27,7 +26,8 @@ import {
   isDeployingAtom,
   isDelcaringAtom,
   declTxHashAtom,
-  deployTxHashAtom
+  deployTxHashAtom,
+  deployAddressAtom
 } from '../../atoms/deployment'
 
 import { useWaitForTransaction } from '@starknet-react/core'
@@ -44,9 +44,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { provider } = useProvider()
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(
-    selectedCompiledContract
-  )
+  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
 
   useEffect(() => {
     if (contracts.length > 0) {
@@ -54,14 +52,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
   }, [contracts])
 
-  const {
-    isDeclaring,
-    isDeploying,
-    declStatus,
-    notEnoughInputs,
-    declTxHash,
-    deployTxHash
-  } = useAtomValue(deploymentAtom)
+  const { isDeclaring, isDeploying, declStatus, notEnoughInputs, declTxHash, deployTxHash } =
+    useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
   const setDeployStatus = useSetAtom(deployStatusAtom)
@@ -71,6 +63,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const setDeclTxHash = useSetAtom(declTxHashAtom)
   const setDeployTxHash = useSetAtom(deployTxHashAtom)
+  const setDeployAddressAtom = useSetAtom(deployAddressAtom)
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
@@ -81,9 +74,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     watch: true
   })
 
-  const [chainId, setChainId] = useState<constants.StarknetChainId>(
-    constants.StarknetChainId.SN_GOERLI
-  )
+  const [chainId, setChainId] = useState<constants.StarknetChainId>(constants.StarknetChainId.SN_GOERLI)
 
   useEffect(() => {
     if (provider !== null) {
@@ -176,7 +167,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [declTxHash, declTxStatus.status])
 
   useEffect(() => {
-    console.log('deployTxHash', deployTxHash, deployTxStatus.status, env)
     if (deployTxHash === '') {
       setIsDeploying(false)
       setDeployStatus('IDLE')
@@ -321,9 +311,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               value: `--------------------- Getting declare contract: ${selectedContract.name} tx receipt --------------------`,
               type: 'info'
             })
-            const txReceipt = await account.waitForTransaction(
-              declareResponse.transaction_hash
-            )
+            const txReceipt = await account.waitForTransaction(declareResponse.transaction_hash)
             await remixClient.call('terminal', 'log', {
               value: JSON.stringify(txReceipt, null, 2),
               type: 'info'
@@ -422,8 +410,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         ...updatedTransactions
       ])
-      if (env === 'wallet') setDeployTxHash(deployResponse.transaction_hash)
-      else {
+      if (env === 'wallet') {
+        setDeployTxHash(deployResponse.transaction_hash)
+        setDeployAddressAtom(deployResponse.contract_address[0])
+      } else {
         setDeployStatus('DONE')
         setIsDeploying(false)
         await remixClient.call('terminal', 'log', {
@@ -431,9 +421,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           type: 'info'
         })
 
-        const txReceipt = await account.waitForTransaction(
-          deployResponse.transaction_hash
-        )
+        const txReceipt = await account.waitForTransaction(deployResponse.transaction_hash)
         await remixClient.call('terminal', 'log', {
           value: JSON.stringify(txReceipt, null, 2),
           type: 'info'
@@ -445,10 +433,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         })
         setActiveTab('interaction')
       }
-      setContractDeployment(
-        selectedContract,
-        deployResponse.contract_address[0]
-      )
+      setContractDeployment(selectedContract, deployResponse.contract_address[0])
     } catch (error) {
       setDeployStatus('ERROR')
       setIsDeploying(false)
@@ -499,19 +484,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setSelectedContract(declaredContract)
   }
 
-  const setContractDeployment = (
-    currentContract: Contract,
-    address: string
-  ): void => {
+  const setContractDeployment = (currentContract: Contract, address: string): void => {
     if (account == null) return
     const deployedInfoMap = new Map<string, boolean>()
     const deployedContract = {
       ...currentContract,
       address,
-      deployedInfo: [
-        ...currentContract.deployedInfo,
-        { address: account.address, chainId }
-      ].flatMap((deployment) => {
+      deployedInfo: [...currentContract.deployedInfo, { address: account.address, chainId }].flatMap((deployment) => {
         const key = `${deployment.address}-${deployment.chainId}`
         if (deployedInfoMap.has(key)) {
           return []
@@ -539,81 +518,65 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             <div className="icon">
               <img src={useIcon('deploy-icon.svg')} alt="deploy-icon" />
             </div>
-            <span className="mt-1 mb-1 text-no-break">{contracts.length > 0 && selectedContract !== null ? 'Deploy your selected contract' : 'No contracts ready for deployment yet, compile a cairo contract'}</span>
+            <span className="mt-1 mb-1 text-no-break">
+              {contracts.length > 0 && selectedContract !== null
+                ? 'Deploy your selected contract'
+                : 'No contracts ready for deployment yet, compile a cairo contract'}
+            </span>
           </div>
           <CompiledContracts show={'class'} />
 
-          {contracts.length > 0 && selectedContract !== null
-            ? (
+          {contracts.length > 0 && selectedContract !== null ? (
             <div>
               <button
                 className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
                 style={{
                   cursor: `${
-                  isDeclaring ||
+                    isDeclaring ||
                     account == null ||
-                    selectedContract.declaredInfo.some(
-                      (info) => info.chainId === chainId && info.env === env
-                    )
-                    ? 'not-allowed'
-                    : 'pointer'
-                }`
+                    selectedContract.declaredInfo.some((info) => info.chainId === chainId && info.env === env)
+                      ? 'not-allowed'
+                      : 'pointer'
+                  }`
                 }}
                 disabled={
                   isDeclaring ||
                   account == null ||
-                  selectedContract.declaredInfo.some(
-                    (info) => info.chainId === chainId && info.env === env
-                  )
+                  selectedContract.declaredInfo.some((info) => info.chainId === chainId && info.env === env)
                 }
                 aria-disabled={
                   isDeclaring ||
                   account == null ||
-                  selectedContract.declaredInfo.some(
-                    (info) => info.chainId === chainId && info.env === env
-                  )
+                  selectedContract.declaredInfo.some((info) => info.chainId === chainId && info.env === env)
                 }
                 onClick={handleDeclare}
               >
                 <div className="d-flex align-items-center justify-content-center">
                   <div className="text-truncate overflow-hidden text-nowrap">
-                    {isDeclaring
-                      ? (
-                    <>
-                      <span style={{ paddingLeft: '0.5rem' }}>
-                        {DeclareStatusLabels[declStatus]}
-                      </span>
-                    </>
-                        )
-                      : (
+                    {isDeclaring ? (
+                      <>
+                        <span style={{ paddingLeft: '0.5rem' }}>{DeclareStatusLabels[declStatus]}</span>
+                      </>
+                    ) : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         {account !== null &&
-                        selectedContract.declaredInfo.some(
-                          (info) => info.chainId === chainId && info.env === env
-                        )
-                          ? (
+                        selectedContract.declaredInfo.some((info) => info.chainId === chainId && info.env === env) ? (
                           <span>
-                          {' '}
-                            Declared {selectedContract.name}{' '}
-                            <i className="bi bi-check"></i>
+                            {' '}
+                            Declared {selectedContract.name} <i className="bi bi-check"></i>
                           </span>
-                            )
-                          : (
+                        ) : (
                           <span> Declare {selectedContract.name}</span>
-                            )}
-                      </div>
                         )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
-              <ConstructorForm
-                abi={selectedContract.abi}
-                callBackFn={handleDeploySubmit}
-              />
+              <ConstructorForm abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
               {account != null &&
                 selectedContract.deployedInfo.some(
-                  (info) =>
-                    info.address === account.address && info.chainId === chainId
+                  (info) => info.address === account.address && info.chainId === chainId
                 ) && (
                   <div className="mt-3">
                     <label style={{ display: 'block' }}>
@@ -631,15 +594,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                       for more!
                     </label>
                   </div>
-              )}
-              {notEnoughInputs && (
-                <label>Please fill out all constructor fields!</label>
-              )}
+                )}
+              {notEnoughInputs && <label>Please fill out all constructor fields!</label>}
             </div>
-              )
-            : (
-           <></>
-              )}
+          ) : (
+            <></>
+          )}
         </div>
       </Container>
     </>
