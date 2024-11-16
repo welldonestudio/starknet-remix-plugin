@@ -17,13 +17,27 @@ import useRemixClient from '../../hooks/useRemixClient'
 import { StarknetChainId } from '../../utils/types/accounts'
 import { BigNumber } from 'ethers'
 
-const ENDPOINT = 'https://verify.welldonestudio.io/starknet/verifications'
+const ENDPOINT = 'http://localhost:9000'
 
 interface UploadFile {
   chainId: string
-  account: string
+  contractAddress: string
   timestamp: string
-  zipFile: Blob
+  srcZipFile: Blob
+}
+
+// {
+//   "contractAddress": "0x009b0a3a29c105c495b1869444662ce012fd119483201623721f698ddc05acdc",
+//   "scarbVersion": "2.5.3",
+//   "srcFileId": "1731738722663",
+//   "chainId": "0x534e5f5345504f4c4941"
+// }
+
+interface StarknetVerifyRequest {
+  contractAddress: string;
+  scarbVersion: string;
+  srcFileId: string;
+  chainId: string
 }
 
 export interface FileInfo {
@@ -60,26 +74,38 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
   const requestVerification = async () => {
     try {
       const currentWorkspace = await remixClient.filePanel.getCurrentWorkspace()
+      console.log('currentWorkspace: ', currentWorkspace)
       const files = await allFileFromWorkspace(remixClient, currentWorkspace.absolutePath)
+      console.log('files: ', files)
       const blob = await generateZip(remixClient, files)
+      console.log('blob', blob)
+      // return
       if (!blob || !address) return
 
-      const upload = await uploadFile({
+      const srcFileId = await uploadFile({
         chainId: BigNumber.from(chain.id.toString()).toHexString(),
         timestamp: compileTimestamp,
-        account: address,
-        zipFile: blob
-      })
-      if (!upload) return
-
-      const response = await axios.post(ENDPOINT, {
         contractAddress: deployAddress,
-        declareTxHash: declTxHash,
-        scarbVersion: cairoVersion.replace('v', ''),
-        srcFileId: compileTimestamp,
-        chainId: BigNumber.from(chain.id.toString()).toHexString(),
-        verifyRequestAddress: address
+        srcZipFile: blob
       })
+      if (!srcFileId) return
+
+      // const response = await axios.post(ENDPOINT, {
+      //   contractAddress: deployAddress,
+      //   declareTxHash: declTxHash,
+      //   scarbVersion: cairoVersion.replace('v', ''),
+      //   srcFileId: compileTimestamp,
+      //   chainId: BigNumber.from(chain.id.toString()).toHexString(),
+      //   verifyRequestAddress: address
+      // })
+
+      const res = await verify({
+        contractAddress: deployAddress,
+        scarbVersion: cairoVersion.replace('v', ''),
+        srcFileId,
+        chainId: BigNumber.from(chain.id.toString()).toHexString(),
+      })
+      console.log(res)
     } catch (error) {
       console.error(error)
     }
@@ -92,7 +118,6 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
       <h1>scarbVersion: {cairoVersion.replace('v', '')}</h1>
       <h1>srcFileId: {compileTimestamp}</h1>
       <h1>chainId: {BigNumber.from(chain.id.toString()).toHexString()}</h1>
-      <h1>verifyRequestAddress: {address}</h1>
       <button onClick={requestVerification}>Test</button>
     </Container>
   )
@@ -135,8 +160,10 @@ const generateZip = async (remixClient: any, fileInfos: Array<FileInfo>) => {
         const content = await remixClient.fileManager.readFile(fileinfo.path)
         const f = createFile(content || '', fileinfo.path.substring(fileinfo.path.lastIndexOf('/') + 1))
         const chainFolderExcluded = fileinfo.path.substring(fileinfo.path.indexOf('/') + 1)
+        console.log('chainFolderExcluded', chainFolderExcluded)
         const projFolderExcluded = chainFolderExcluded.substring(chainFolderExcluded.indexOf('/') + 1)
-        zip.file(projFolderExcluded, f)
+        console.log('projFolderExcluded', projFolderExcluded)
+        zip.file(chainFolderExcluded, f)
       }
     })
   )
@@ -148,17 +175,31 @@ const createFile = (code: string, name: string) => {
   return new File([blob], name, { type: 'text/plain' })
 }
 
-const uploadFile = async ({ chainId, account, timestamp, zipFile }: UploadFile) => {
+const uploadFile = async ({ chainId, contractAddress, timestamp, srcZipFile }: UploadFile) => {
   const formData = new FormData()
-  formData.append('chainName', 'starknet')
   formData.append('chainId', chainId)
-  formData.append('account', account)
-  formData.append('timestamp', timestamp)
-  formData.append('fileType', 'starknet')
-  formData.append('zipFile', zipFile)
-  const res = await axios.post('https://dev.compiler.welldonestudio.io' + '/s3Proxy/src-v2', formData, {
+  formData.append('contractAddress', contractAddress)
+  // formData.append('timestamp', timestamp)
+  // formData.append('fileType', 'starknet')
+  formData.append('srcZipFile', srcZipFile)
+  const res = await axios.post(ENDPOINT + '/starknet/verifications/sources', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
+      Accept: 'application/json'
+    }
+  })
+
+  return res.data.srcFileId
+}
+
+// contractAddress: string;
+// scarbVersion: string;
+// srcFileId: string;
+// chainId: string
+const verify = async (request: StarknetVerifyRequest) => {
+  const res = await axios.post(ENDPOINT + '/starknet/verifications', request, {
+    headers: {
+      'Content-Type': 'application/json',
       Accept: 'application/json'
     }
   })
