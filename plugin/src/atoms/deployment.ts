@@ -20,6 +20,8 @@ const declTxHashAtom = atom<string>('')
 
 const deployTxHashAtom = atom<string>('')
 
+const deployAddressAtom = atom<string>('')
+
 type Key =
   | 'isDeploying'
   | 'deployStatus'
@@ -30,6 +32,7 @@ type Key =
   | 'notEnoughInputs'
   | 'declTxHash'
   | 'deployTxHash'
+  | 'deployAddress'
 
 interface SetDeploymentAtom {
   key: Key
@@ -47,26 +50,23 @@ const deploymentAtom = atom(
       constructorInputs: get(constructorInputsAtom),
       notEnoughInputs: get(notEnoughInputsAtom),
       declTxHash: get(declTxHashAtom),
-      deployTxHash: get(deployTxHashAtom)
+      deployTxHash: get(deployTxHashAtom),
+      deployAddress: get(deployAddressAtom)
     }
   },
   (_get, set, newValue: SetDeploymentAtom) => {
     switch (newValue?.key) {
       case 'isDeploying':
-        typeof newValue?.value === 'boolean' &&
-          set(isDeployingAtom, newValue?.value)
+        typeof newValue?.value === 'boolean' && set(isDeployingAtom, newValue?.value)
         break
       case 'deployStatus':
-        typeof newValue?.value === 'string' &&
-          set(deployStatusAtom, newValue?.value as Status)
+        typeof newValue?.value === 'string' && set(deployStatusAtom, newValue?.value as Status)
         break
       case 'isDeclaring':
-        typeof newValue?.value === 'boolean' &&
-          set(isDelcaringAtom, newValue?.value)
+        typeof newValue?.value === 'boolean' && set(isDelcaringAtom, newValue?.value)
         break
       case 'declStatus':
-        typeof newValue?.value === 'string' &&
-          set(declStatusAtom, newValue?.value as Status)
+        typeof newValue?.value === 'string' && set(declStatusAtom, newValue?.value as Status)
         break
       case 'constructorCalldata':
         typeof newValue?.value === 'object' &&
@@ -74,20 +74,19 @@ const deploymentAtom = atom(
           set(constructorCalldataAtom, newValue?.value)
         break
       case 'constructorInputs':
-        Array.isArray(newValue?.value) &&
-          set(constructorInputsAtom, newValue?.value)
+        Array.isArray(newValue?.value) && set(constructorInputsAtom, newValue?.value)
         break
       case 'notEnoughInputs':
-        typeof newValue?.value === 'boolean' &&
-          set(notEnoughInputsAtom, newValue?.value)
+        typeof newValue?.value === 'boolean' && set(notEnoughInputsAtom, newValue?.value)
         break
       case 'declTxHash':
-        typeof newValue?.value === 'string' &&
-          set(declTxHashAtom, newValue?.value)
+        typeof newValue?.value === 'string' && set(declTxHashAtom, newValue?.value)
         break
       case 'deployTxHash':
-        typeof newValue?.value === 'string' &&
-          set(deployTxHashAtom, newValue?.value)
+        typeof newValue?.value === 'string' && set(deployTxHashAtom, newValue?.value)
+        break
+      case 'deployAddress':
+        typeof newValue?.value === 'string' && set(deployAddressAtom, newValue?.value)
         break
     }
   }
@@ -103,5 +102,6 @@ export {
   notEnoughInputsAtom,
   deploymentAtom,
   declTxHashAtom,
-  deployTxHashAtom
+  deployTxHashAtom,
+  deployAddressAtom
 }
