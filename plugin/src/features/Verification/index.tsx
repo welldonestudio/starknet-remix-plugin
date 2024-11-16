@@ -1,6 +1,6 @@
 /* eslint-disable */
 import JSZip from 'jszip'
-import React from 'react'
+import React, { useState } from 'react'
 import Container from '../../components/ui_components/Container'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { isVerifyingAtom, isVerifiedAtom, verificationAtom } from '../../atoms/verification'
@@ -16,6 +16,7 @@ import { useAccount, useNetwork } from '@starknet-react/core'
 import useRemixClient from '../../hooks/useRemixClient'
 import { StarknetChainId } from '../../utils/types/accounts'
 import { BigNumber } from 'ethers'
+import { getExplorerUrl, getShortenedHash } from '../../utils/utils'
 
 const ENDPOINT = 'http://localhost:9000'
 
@@ -34,9 +35,9 @@ interface UploadFile {
 // }
 
 interface StarknetVerifyRequest {
-  contractAddress: string;
-  scarbVersion: string;
-  srcFileId: string;
+  contractAddress: string
+  scarbVersion: string
+  srcFileId: string
   chainId: string
 }
 
@@ -58,6 +59,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
   const { isValidCairo, compileTimestamp } = useAtomValue(compilationAtom)
   const { status, isVerifying, isVerified } = useAtomValue(verificationAtom)
   const { declStatus, notEnoughInputs, declTxHash, deployTxHash, deployAddress } = useAtomValue(deploymentAtom)
+  const [verifyStatus, setVerifyStatus] = useState<'Verify' | 'Uploading' | 'Verifing'>('Verify')
 
   const setIsVerifying = useSetAtom(isVerifyingAtom)
   const setIsVerified = useSetAtom(isVerifiedAtom)
@@ -82,6 +84,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
       // return
       if (!blob || !address) return
 
+      setVerifyStatus('Uploading')
       const srcFileId = await uploadFile({
         chainId: BigNumber.from(chain.id.toString()).toHexString(),
         timestamp: compileTimestamp,
@@ -99,26 +102,96 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
       //   verifyRequestAddress: address
       // })
 
+      setVerifyStatus('Verifing')
       const res = await verify({
         contractAddress: deployAddress,
         scarbVersion: cairoVersion.replace('v', ''),
         srcFileId,
-        chainId: BigNumber.from(chain.id.toString()).toHexString(),
+        chainId: BigNumber.from(chain.id.toString()).toHexString()
       })
       console.log(res)
+
+      if (res) {
+        setIsVerified(true)
+        setVerifyStatus('Verify')
+      }
     } catch (error) {
       console.error(error)
     }
   }
 
+  const txIdShort = getShortenedHash(declTxHash, 8, 6)
+  const addressShort = getShortenedHash(deployAddress ?? '', 8, 6)
+
   return (
     <Container>
-      <h1>deployAddress: {deployAddress}</h1>
-      <h1>declareTxHash: {declTxHash}</h1>
-      <h1>scarbVersion: {cairoVersion.replace('v', '')}</h1>
-      <h1>srcFileId: {compileTimestamp}</h1>
-      <h1>chainId: {BigNumber.from(chain.id.toString()).toHexString()}</h1>
-      <button onClick={requestVerification}>Test</button>
+      <div className="maincard" style={{ gridTemplateColumns: 'unset' }}>
+        <div className={'txn-info-1'}>
+          <div className="account-wrapper">
+            <p className={'label-tx'}>Address:</p>
+            {env === 'localDevnet' || env === 'remoteDevnet' || env === 'localKatanaDevnet' ? (
+              <a title={deployAddress} target="_blank" rel="noreferrer">
+                {addressShort}
+              </a>
+            ) : (
+              <a
+                title={deployAddress}
+                href={`${getExplorerUrl('voyager', 'sepolia')}/contract/${deployAddress ?? ''}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {addressShort}
+              </a>
+            )}
+          </div>
+          {/* <div className="txn-wrapper">
+            <p className={'label-tx'}>TxID:</p>
+            {env === 'localDevnet' || env === 'remoteDevnet' || env === 'localKatanaDevnet' ? (
+              <a target="_blank" title={declTxHash} rel="noreferrer">
+                {txIdShort}
+              </a>
+            ) : (
+              <a
+                href={`${getExplorerUrl('voyager', 'sepolia')}/tx/${declTxHash}`}
+                target="_blank"
+                title={txIdShort}
+                rel="noreferrer"
+              >
+                {txIdShort}
+              </a>
+            )}
+          </div> */}
+          <div className="txn-wrapper">
+            <p className={'label-tx'}>Scarb Version:</p>
+            {cairoVersion.replace('v', '')}
+          </div>
+          <div className="txn-wrapper">
+            <p className={'label-tx'}>chainId:</p>
+            {BigNumber.from(chain.id.toString()).toHexString()}
+          </div>
+        </div>
+      </div>
+      <button
+        className="btn btn-primary w-100 rounded-button text-break mb-1 mt-1 px-0"
+        disabled={verifyStatus !== 'Verify'}
+        onClick={requestVerification}
+      >
+        {verifyStatus}
+      </button>
+      {isVerified && (
+        <>
+          <p className="text-success">
+            Verified{' '}
+            <a
+              href={`https://verification-roan.vercel.app/verify?chain=starknet&network=sepolia&contractAddress=${deployAddress}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Go to Veriwell
+            </a>
+          </p>
+        </>
+      )}
     </Container>
   )
 }
