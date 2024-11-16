@@ -1,4 +1,4 @@
-// status: 'Compiling...' as string,
+//   status: 'Compiling...' as string,
 //   setStatus: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>,
 
 import { atom } from 'jotai'
@@ -35,7 +35,20 @@ const tomlPathsAtom = atom<string[]>([])
 //   setActiveTomlPath: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>
 const activeTomlPathAtom = atom<string>('')
 
-type Keys = 'status' | 'currentFilename' | 'isCompiling' | 'isValidCairo' | 'noFileSelected' | 'hashDir' | 'tomlPaths' | 'activeTomlPath'
+//   compileTimestamp: '' as string,
+//   setCompileTimestamp: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>
+const compileTimestampAtom = atom<string>('')
+
+type Keys =
+  | 'status'
+  | 'currentFilename'
+  | 'isCompiling'
+  | 'isValidCairo'
+  | 'noFileSelected'
+  | 'hashDir'
+  | 'tomlPaths'
+  | 'activeTomlPath'
+  | 'compileTimestamp'
 
 interface SetCompilationValue {
   key: Keys
@@ -52,19 +65,39 @@ const compilationAtom = atom(
       noFileSelected: get(noFileSelectedAtom),
       hashDir: get(hashDirAtom),
       tomlPaths: get(tomlPathsAtom),
-      activeTomlPath: get(activeTomlPathAtom)
+      activeTomlPath: get(activeTomlPathAtom),
+      compileTimestamp: get(compileTimestampAtom)
     }
   },
   (_get, set, newValue: SetCompilationValue) => {
     switch (newValue?.key) {
-      case 'status': typeof newValue?.value === 'string' && set(statusAtom, newValue?.value); break
-      case 'currentFilename': typeof newValue?.value === 'string' && set(currentFilenameAtom, newValue?.value); break
-      case 'isCompiling': typeof newValue?.value === 'boolean' && set(isCompilingAtom, newValue?.value); break
-      case 'isValidCairo': typeof newValue?.value === 'boolean' && set(isValidCairoAtom, newValue?.value); break
-      case 'noFileSelected': typeof newValue?.value === 'boolean' && set(noFileSelectedAtom, newValue?.value); break
-      case 'hashDir': typeof newValue?.value === 'string' && set(hashDirAtom, newValue?.value); break
-      case 'tomlPaths': Array.isArray(newValue?.value) && set(tomlPathsAtom, newValue?.value); break
-      case 'activeTomlPath': typeof newValue?.value === 'string' && set(activeTomlPathAtom, newValue?.value); break
+      case 'status':
+        typeof newValue?.value === 'string' && set(statusAtom, newValue?.value)
+        break
+      case 'currentFilename':
+        typeof newValue?.value === 'string' && set(currentFilenameAtom, newValue?.value)
+        break
+      case 'isCompiling':
+        typeof newValue?.value === 'boolean' && set(isCompilingAtom, newValue?.value)
+        break
+      case 'isValidCairo':
+        typeof newValue?.value === 'boolean' && set(isValidCairoAtom, newValue?.value)
+        break
+      case 'noFileSelected':
+        typeof newValue?.value === 'boolean' && set(noFileSelectedAtom, newValue?.value)
+        break
+      case 'hashDir':
+        typeof newValue?.value === 'string' && set(hashDirAtom, newValue?.value)
+        break
+      case 'tomlPaths':
+        Array.isArray(newValue?.value) && set(tomlPathsAtom, newValue?.value)
+        break
+      case 'activeTomlPath':
+        typeof newValue?.value === 'string' && set(activeTomlPathAtom, newValue?.value)
+        break
+      case 'compileTimestamp':
+        typeof newValue?.value === 'string' && set(compileTimestampAtom, newValue?.value)
+        break
     }
   }
 )
@@ -78,5 +111,6 @@ export {
   hashDirAtom,
   tomlPathsAtom,
   activeTomlPathAtom,
+  compileTimestampAtom,
   compilationAtom
 }

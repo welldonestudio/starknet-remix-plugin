@@ -6,11 +6,7 @@ import './styles.css'
 import Compilation from '../Compilation'
 import Deployment from '../Deployment'
 import Interaction from '../Interaction'
-import Accordian, {
-  AccordianItem,
-  AccordionContent,
-  AccordionTrigger
-} from '../../components/ui_components/Accordian'
+import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../components/ui_components/Accordian'
 import TransactionHistory from '../TransactionHistory'
 import Footer from '../Footer'
 import StateAction from '../../components/StateAction'
@@ -27,12 +23,8 @@ import { Settings } from '../../components/Settings'
 import { versionsAtom, cairoVersionAtom } from '../../atoms/cairoVersion'
 import { apiUrl } from '../../utils/network'
 import { StarknetProvider } from '../../components/starknet/starknet-provider'
-export type AccordianTabs =
-  | 'compile'
-  | 'deploy'
-  | 'interaction'
-  | 'transactions'
-  | ''
+import Verification from '../Verification'
+export type AccordianTabs = 'compile' | 'deploy' | 'interaction' | 'transactions' | 'verify' | ''
 
 const Plugin: React.FC = () => {
   const isCompiling = useAtomValue(isCompilingAtom)
@@ -45,12 +37,9 @@ const Plugin: React.FC = () => {
   const isDeclaringOrDeploying = isDeploying || isDeclaring
 
   // Interaction state variables
-  const [interactionStatus, setInteractionStatus] = useState<
-  'loading' | 'success' | 'error' | ''
-  >('')
+  const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
 
-  const [currentAccordian, setCurrentAccordian] =
-    useState<AccordianTabs>('compile')
+  const [currentAccordian, setCurrentAccordian] = useState<AccordianTabs>('compile')
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleTabView = (clicked: AccordianTabs) => {
@@ -66,8 +55,7 @@ const Plugin: React.FC = () => {
   const { remixClient } = useRemixClient()
 
   const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
-  const pluginVersion =
-    envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
+  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
   useEffect(() => {
     const fetchCairoVersions = async (): Promise<void> => {
@@ -92,9 +80,7 @@ const Plugin: React.FC = () => {
         )
         console.error(e)
         await remixClient.terminal.log(
-          `🔴 Failed to fetch cairo versions from the compilation server ${
-            e as string
-          }` as any
+          `🔴 Failed to fetch cairo versions from the compilation server ${e as string}` as any
         )
       }
     }
@@ -235,32 +221,19 @@ const Plugin: React.FC = () => {
             </Tabs.List>
 
             <Tabs.Content value="home">
-              <Accordian
-                type="single"
-                value={currentAccordian}
-                defaultValue={'compile'}
-              >
+              <Accordian type="single" value={currentAccordian} defaultValue={'compile'}>
                 <AccordianItem value="compile">
                   <AccordionTrigger
                     onClick={() => {
                       handleTabView('compile')
                     }}
                   >
-                    <span
-                      className="d-flex align-items-center"
-                      style={{ gap: '0.5rem' }}
-                    >
+                    <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                       <span className={'accordian-list-number'}>1</span>
                       <p style={{ all: 'unset' }}>Compile</p>
                       <StateAction
                         value={
-                          isCompiling
-                            ? 'loading'
-                            : status === 'done'
-                              ? 'success'
-                              : status === 'failed'
-                                ? 'error'
-                                : ''
+                          isCompiling ? 'loading' : status === 'done' ? 'success' : status === 'failed' ? 'error' : ''
                         }
                       />
                     </span>
@@ -276,10 +249,7 @@ const Plugin: React.FC = () => {
                       handleTabView('deploy')
                     }}
                   >
-                    <span
-                      className="d-flex align-items-center"
-                      style={{ gap: '0.5rem' }}
-                    >
+                    <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                       <span className={'accordian-list-number'}>2</span>
                       <p style={{ all: 'unset' }}>Deploy</p>
                       <StateAction
@@ -305,10 +275,7 @@ const Plugin: React.FC = () => {
                       handleTabView('interaction')
                     }}
                   >
-                    <span
-                      className="d-flex align-items-center"
-                      style={{ gap: '0.5rem' }}
-                    >
+                    <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
                       <span className={'accordian-list-number'}>3</span>
                       <p style={{ all: 'unset' }}>Interact</p>
                       <StateAction value={interactionStatus} />
@@ -316,6 +283,22 @@ const Plugin: React.FC = () => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <Interaction setInteractionStatus={setInteractionStatus} />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="verify">
+                  <AccordionTrigger
+                    onClick={() => {
+                      handleTabView('verify')
+                    }}
+                  >
+                    <span className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                      <span className={'accordian-list-number'}>4</span>
+                      <p style={{ all: 'unset' }}>Verify</p>
+                      <StateAction value={interactionStatus} />
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Verification setAccordian={setCurrentAccordian} />
                   </AccordionContent>
                 </AccordianItem>
               </Accordian>
