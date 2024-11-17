@@ -183,7 +183,7 @@ const Verification: React.FC<VerificationProps> = ({ setAccordian }) => {
           <p className="text-success">
             Verified{' '}
             <a
-              href={`https://verification-roan.vercel.app/verify?chain=starknet&network=sepolia&contractAddress=${deployAddress}`}
+              href={`https://veriveri.vercel.app/verify?chain=starknet&network=sepolia&contractAddress=${deployAddress}`}
               target="_blank"
               rel="noreferrer"
             >
